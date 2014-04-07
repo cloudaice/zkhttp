@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	GetMethod    = "Get"
-	PostMethod   = "Post"
-	PutMethod    = "Put"
-	DeleteMethod = "Delete"
+	GetMethod    = "GET"
+	PostMethod   = "POST"
+	PutMethod    = "PUT"
+	DeleteMethod = "DELETE"
 )
 
 type Resource interface {
