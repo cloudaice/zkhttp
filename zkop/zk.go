@@ -2,7 +2,6 @@ package zkop
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net"
@@ -17,19 +16,27 @@ type Zh struct {
 }
 
 func NewZh(servers []string) *Zh {
-	return &Zh{
+	zh := &Zh{
 		addrs: servers,
 	}
+	if err := zh.connect(); err != nil {
+		return nil
+	}
+
+	return zh
 }
 
-func (zh *Zh) connect() (*zk.Conn, <-chan zk.Event, error) {
+func (zh *Zh) connect() error {
 	zkConn, session, err := zk.Connect(
 		zh.addrs,
 		time.Duration(5)*time.Second)
 	if err != nil {
-		return nil, session, err
+		return err
 	}
-	return zkConn, session, nil
+
+	go zh.dealSession(session)
+	zh.zkConn = zkConn
+	return nil
 }
 
 // deal with session and return when state is disconnect
@@ -42,30 +49,8 @@ func (zh *Zh) dealSession(session <-chan zk.Event) {
 	}
 }
 
-func (zh *Zh) ConnForever() {
-	for {
-		zkConn, session, err := zh.connect()
-		if err != nil {
-			log.Printf("connect zookeeper cause by %v\n", err)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		zh.zkConn = zkConn
-		go zh.dealSession(session)
-
-		checker := time.NewTicker(2 * time.Millisecond)
-	CHECKSTATE:
-		for _ = range checker.C {
-			switch zh.zkConn.State() {
-			case zk.StateConnected, zk.StateConnecting, zk.StateHasSession:
-				continue
-			default:
-				log.Println("reconnect zookeeper")
-				break CHECKSTATE
-			}
-		}
-		zh.zkConn.Close()
-	}
+func (zh *Zh) Close() {
+	zh.zkConn.Close()
 }
 
 //Fetch state with single zookeeper addr and port
@@ -113,7 +98,7 @@ func (zh *Zh) Ls(znode string) ([]string, error) {
 	var nodes []string
 	children, _, err := zh.zkConn.Children(znode)
 	if err != nil {
-		return znode, err
+		return nodes, err
 	}
 
 	return children, nil

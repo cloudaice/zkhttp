@@ -7,7 +7,6 @@ import (
 func TestState(t *testing.T) {
 	zkServers := []string{"10.237.36.153:2181", "10.237.36.154:2181", "10.237.36.155:2181"}
 	zh := NewZh(zkServers)
-	go zh.ConnForever()
 
 	for _, zkAddr := range zkServers {
 		_, err := zh.state(zkAddr)
