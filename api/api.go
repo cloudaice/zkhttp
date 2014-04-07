@@ -1,4 +1,4 @@
-package zkhttp
+package api
 
 import (
 	"encoding/json"
@@ -21,28 +21,21 @@ type Resource interface {
 	Delete(values url.Values) (int, interface{})
 }
 
-type (
-	GetNotSupport    struct{}
-	PostNotSupport   struct{}
-	PutNotSupport    struct{}
-	DeleteNotSupport struct{}
-)
-
 type DefaultResource struct{}
 
-func (DefaultResource) Get(values, url.Values) (int, interface{}) {
+func (DefaultResource) Get(values url.Values) (int, interface{}) {
 	return http.StatusMethodNotAllowed, ""
 }
 
-func (DefaultResource) Post(values, url.Values) (int, interface{}) {
+func (DefaultResource) Post(values url.Values) (int, interface{}) {
 	return http.StatusMethodNotAllowed, ""
 }
 
-func (DefaultResource) Put(values, url.Values) (int, interface{}) {
+func (DefaultResource) Put(values url.Values) (int, interface{}) {
 	return http.StatusMethodNotAllowed, ""
 }
 
-func (DefaultResource) Delete(values, url.Values) (int, interface{}) {
+func (DefaultResource) Delete(values url.Values) (int, interface{}) {
 	return http.StatusMethodNotAllowed, ""
 }
 
@@ -56,7 +49,7 @@ func NewAPI() *API {
 	}
 }
 
-func (api *API) handleFunc(reource Resource) http.HandlerFunc {
+func (api *API) handleFunc(resource Resource) http.HandlerFunc {
 	return func(rw http.ResponseWriter, request *http.Request) {
 		method := request.Method
 		request.ParseForm()
